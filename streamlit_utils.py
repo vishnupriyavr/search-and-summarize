@@ -1,9 +1,16 @@
 import streamlit as st
-from transformers import AutoTokenizer, TFAutoModel
+from transformers import (
+    AutoTokenizer,
+    TFAutoModel,
+    AutoModelForSeq2SeqLM,
+    GenerationConfig,
+)
 from datasets import Dataset
 from datasets import load_dataset
 import pandas as pd
-import time
+from transformers import pipeline
+from peft import PeftModel
+import torch
 
 
 def get_query():
@@ -43,7 +50,7 @@ def render_query():
     )
 
 
-@st.cache_data(show_spinner="Loading the sentence transformers model..")
+@st.cache_data()
 def load_model():
     model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
     tokenizer = AutoTokenizer.from_pretrained(model_ckpt)
@@ -52,7 +59,23 @@ def load_model():
     return tokenizer, model
 
 
-@st.cache_data(show_spinner="Loading the wiki movie dataset..")
+@st.cache_data()
+def load_peft_model():
+    peft_model_base = AutoModelForSeq2SeqLM.from_pretrained(
+        "google/flan-t5-small", torch_dtype=torch.bfloat16
+    )
+    peft_tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
+
+    peft_model = PeftModel.from_pretrained(
+        peft_model_base,
+        "vishnupriyavr/flan-t5-movie-summary",
+        torch_dtype=torch.bfloat16,
+        is_trainable=False,
+    )
+    return peft_model, peft_tokenizer
+
+
+@st.cache_data()
 def load_faiss_dataset():
     faiss_dataset = load_dataset(
         "vishnupriyavr/wiki-movie-plots-with-summaries-faiss-embeddings",
@@ -103,6 +126,34 @@ def search_movie(user_query, limit):
         "embeddings",
     ]
     return samples_df
+
+
+def summarized_plot(sample_df, limit):
+    peft_model, peft_tokenizer = load_peft_model()
+    peft_model_text_output_list = []
+
+    for i in range(limit):
+        prompt = f"""
+        Summarize the following movie plot.
+
+        {sample_df.iloc[i]["plot"]}
+
+        Summary: """
+
+        input_ids = peft_tokenizer(prompt, return_tensors="pt").input_ids
+
+        peft_model_outputs = peft_model.generate(
+            input_ids=input_ids,
+            generation_config=GenerationConfig(
+                max_new_tokens=250, temperature=0.7, num_beams=1
+            ),
+        )
+        peft_model_text_output = peft_tokenizer.decode(
+            peft_model_outputs[0], skip_special_tokens=True
+        )
+        peft_model_text_output_list.append(peft_model_text_output)
+
+    return peft_model_text_output_list
 
 
 def aggregate(items):
