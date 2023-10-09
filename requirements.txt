@@ -1,6 +1,6 @@
 streamlit
 pandas
-datasets
+datasets==2.11
 transformers
 peft
 torch
