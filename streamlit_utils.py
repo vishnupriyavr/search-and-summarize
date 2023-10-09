@@ -50,7 +50,7 @@ def render_query():
     )
 
 
-@st.cache_data()
+@st.cache()
 def load_model():
     model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
     tokenizer = AutoTokenizer.from_pretrained(model_ckpt)
@@ -59,7 +59,7 @@ def load_model():
     return tokenizer, model
 
 
-@st.cache_data()
+@st.cache()
 def load_peft_model():
     peft_model_base = AutoModelForSeq2SeqLM.from_pretrained(
         "google/flan-t5-small", torch_dtype=torch.bfloat16
