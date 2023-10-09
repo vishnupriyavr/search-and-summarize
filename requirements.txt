@@ -1,8 +1,8 @@
-streamlit
-pandas
-datasets==2.11
+datasets==2.14.5
 transformers
 peft
 torch
 tensorflow
 faiss-cpu
+streamlit
+pandas
