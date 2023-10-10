@@ -78,11 +78,7 @@ def load_faiss_dataset():
         "vishnupriyavr/wiki-movie-plots-with-summaries-faiss-embeddings",
         split="train",
     )
-    faiss_dataset.set_format("pandas")
-    df = faiss_dataset[:]
-    plots_dataset = Dataset.from_pandas(df)
-    plots_dataset.add_faiss_index(column="embeddings")
-    return plots_dataset
+    return faiss_dataset
 
 
 def get_embeddings(text_list):
@@ -104,7 +100,11 @@ def cls_pooling(model_output):
 def search_movie(user_query, limit):
     question_embedding = get_embeddings([user_query]).numpy()
 
-    plots_dataset = load_faiss_dataset()
+    faiss_dataset = load_faiss_dataset()
+    faiss_dataset.set_format("pandas")
+    df = faiss_dataset[:]
+    plots_dataset = Dataset.from_pandas(df)
+    plots_dataset.add_faiss_index(column="embeddings")
     scores, samples = plots_dataset.get_nearest_examples(
         "embeddings", question_embedding, k=limit
     )
