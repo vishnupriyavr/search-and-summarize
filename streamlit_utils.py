@@ -50,7 +50,6 @@ def render_query():
     )
 
 
-@st.cache()
 def load_model():
     model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
     tokenizer = AutoTokenizer.from_pretrained(model_ckpt)
@@ -59,7 +58,6 @@ def load_model():
     return tokenizer, model
 
 
-@st.cache()
 def load_peft_model():
     peft_model_base = AutoModelForSeq2SeqLM.from_pretrained(
         "google/flan-t5-small", torch_dtype=torch.bfloat16
@@ -75,7 +73,6 @@ def load_peft_model():
     return peft_model, peft_tokenizer
 
 
-@st.cache_data()
 def load_faiss_dataset():
     faiss_dataset = load_dataset(
         "vishnupriyavr/wiki-movie-plots-with-summaries-faiss-embeddings",
