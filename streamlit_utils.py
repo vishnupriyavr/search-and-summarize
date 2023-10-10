@@ -50,19 +50,18 @@ def render_query():
     )
 
 
+@st.cache_data(persist=True)
 def load_model():
     model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
-    tokenizer = AutoTokenizer.from_pretrained(model_ckpt)
     model = TFAutoModel.from_pretrained(model_ckpt, from_pt=True)
 
-    return tokenizer, model
+    return model
 
 
 def load_peft_model():
     peft_model_base = AutoModelForSeq2SeqLM.from_pretrained(
         "google/flan-t5-small", torch_dtype=torch.bfloat16
     )
-    peft_tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
 
     peft_model = PeftModel.from_pretrained(
         peft_model_base,
@@ -70,9 +69,10 @@ def load_peft_model():
         torch_dtype=torch.bfloat16,
         is_trainable=False,
     )
-    return peft_model, peft_tokenizer
+    return peft_model
 
 
+@st.cache_data(persist=True)
 def load_faiss_dataset():
     faiss_dataset = load_dataset(
         "vishnupriyavr/wiki-movie-plots-with-summaries-faiss-embeddings",
@@ -86,7 +86,9 @@ def load_faiss_dataset():
 
 
 def get_embeddings(text_list):
-    tokenizer, model = load_model()
+    model = load_model()
+    model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
+    tokenizer = AutoTokenizer.from_pretrained(model_ckpt)
     encoded_input = tokenizer(
         text_list, padding=True, truncation=True, return_tensors="tf"
     )
@@ -126,7 +128,8 @@ def search_movie(user_query, limit):
 
 
 def summarized_plot(sample_df, limit):
-    peft_model, peft_tokenizer = load_peft_model()
+    peft_model = load_peft_model()
+    peft_tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
     peft_model_text_output_list = []
 
     for i in range(limit):
