@@ -79,8 +79,7 @@ def load_faiss_dataset():
     faiss_dataset = load_dataset(
         "vishnupriyavr/wiki-movie-plots-with-summaries-faiss-embeddings",
         split="train",
-        cache_dir=".",
-        local_files_only = True
+        cache_dir="."
     )
     return faiss_dataset
 
