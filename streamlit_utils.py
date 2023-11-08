@@ -53,14 +53,14 @@ def render_query():
 @st.cache_data(persist=True)
 def load_model():
     model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
-    model = TFAutoModel.from_pretrained(model_ckpt, from_pt=True, local_files_only = True)
+    model = TFAutoModel.from_pretrained(model_ckpt, from_pt=True, cache_dir=".", local_files_only = True)
 
     return model
 
-
+@st.cache_data(persist=True)
 def load_peft_model():
     peft_model_base = AutoModelForSeq2SeqLM.from_pretrained(
-        "google/flan-t5-small", torch_dtype=torch.bfloat16, local_files_only = True
+        "google/flan-t5-small", torch_dtype=torch.bfloat16, cache_dir=".", local_files_only = True
     )
 
     peft_model = PeftModel.from_pretrained(
@@ -68,6 +68,7 @@ def load_peft_model():
         "vishnupriyavr/flan-t5-movie-summary",
         torch_dtype=torch.bfloat16,
         is_trainable=False,
+        cache_dir=".",
         local_files_only = True
     )
     return peft_model
@@ -78,6 +79,8 @@ def load_faiss_dataset():
     faiss_dataset = load_dataset(
         "vishnupriyavr/wiki-movie-plots-with-summaries-faiss-embeddings",
         split="train",
+        cache_dir=".",
+        local_files_only = True
     )
     return faiss_dataset
 
@@ -85,7 +88,7 @@ def load_faiss_dataset():
 def get_embeddings(text_list):
     model = load_model()
     model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
-    tokenizer = AutoTokenizer.from_pretrained(model_ckpt)
+    tokenizer = AutoTokenizer.from_pretrained(model_ckpt, cache_dir=".", local_files_only = True)
     encoded_input = tokenizer(
         text_list, padding=True, truncation=True, return_tensors="tf"
     )
@@ -130,7 +133,7 @@ def search_movie(user_query, limit):
 
 def summarized_plot(sample_df, limit):
     peft_model = load_peft_model()
-    peft_tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
+    peft_tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small", cache_dir=".", local_files_only=True)
     peft_model_text_output_list = []
 
     for i in range(limit):
