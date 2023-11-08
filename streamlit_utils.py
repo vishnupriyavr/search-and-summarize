@@ -53,7 +53,7 @@ def render_query():
 @st.cache_data(persist=True)
 def load_model():
     model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
-    model = TFAutoModel.from_pretrained(model_ckpt, from_pt=True, cache_dir=".", local_files_only = True)
+    model = TFAutoModel.from_pretrained(model_ckpt, from_pt=True)
 
     return model
 
