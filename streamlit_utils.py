@@ -53,14 +53,14 @@ def render_query():
 @st.cache_data(persist=True)
 def load_model():
     model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
-    model = TFAutoModel.from_pretrained(model_ckpt, from_pt=True)
+    model = TFAutoModel.from_pretrained(model_ckpt, from_pt=True, local_files_only = True)
 
     return model
 
 
 def load_peft_model():
     peft_model_base = AutoModelForSeq2SeqLM.from_pretrained(
-        "google/flan-t5-small", torch_dtype=torch.bfloat16
+        "google/flan-t5-small", torch_dtype=torch.bfloat16, local_files_only = True
     )
 
     peft_model = PeftModel.from_pretrained(
@@ -68,6 +68,7 @@ def load_peft_model():
         "vishnupriyavr/flan-t5-movie-summary",
         torch_dtype=torch.bfloat16,
         is_trainable=False,
+        local_files_only = True
     )
     return peft_model
 
