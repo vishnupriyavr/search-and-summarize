@@ -88,7 +88,7 @@ def load_faiss_dataset():
 def get_embeddings(text_list):
     model = load_model()
     model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
-    tokenizer = AutoTokenizer.from_pretrained(model_ckpt, cache_dir=".", local_files_only = True)
+    tokenizer = AutoTokenizer.from_pretrained(model_ckpt)
     encoded_input = tokenizer(
         text_list, padding=True, truncation=True, return_tensors="tf"
     )
